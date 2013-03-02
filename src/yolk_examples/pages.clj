@@ -72,10 +72,11 @@
     [:div#main-content.container]
     (include-js "/js/jquery-1.8.1.min.js"
                 "/js/bootstrap.min.js"
-                "/js/Bacon.js")
+                "/js/Bacon.js"
+                "/js/Bacon.UI.js")
     (main-js module
              (if (= "development" mode)
                "main-debug.js"
                "main.js"))])
-  [:script {:type "text/javascript" :id "lt_ws" :src "http://localhost:8833/socket.io/lighttable/ws.js"}]
+  ;[:script {:type "text/javascript" :id "lt_ws" :src "http://localhost:8833/socket.io/lighttable/ws.js"}]
     )

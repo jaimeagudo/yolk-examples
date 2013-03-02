@@ -15,7 +15,7 @@
 
 (defn bind-letter [$content letter i]
   (let [s ($ (letter-span letter))
-        stream (b/delay mm (* i 5))]
+        stream (b/delay mm (* i 50))]
     (j/append $content s)
     (-> stream
         (b/map #(+ (.-clientX %) (* i 10) 15))
