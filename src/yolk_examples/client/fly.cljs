@@ -15,7 +15,7 @@
 
 (defn bind-letter [$content letter i]
   (let [s ($ (letter-span letter))
-        stream (b/delay mm (* i 50))]
+        stream (b/delay mm (* i 5))]
     (j/append $content s)
     (-> stream
         (b/map #(+ (.-clientX %) (* i 10) 15))
@@ -33,8 +33,6 @@
 (defn ^:export main []
   (let [text "Time flies like an arrow"]
     (fly-text text)))
-
-(fly-text "Fruit flies like a orange.")
 
 (defn ^:export repl []
   (repl/connect "http://localhost:9000/repl"))
