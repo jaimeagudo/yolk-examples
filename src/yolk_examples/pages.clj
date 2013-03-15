@@ -17,13 +17,9 @@
    :prod (str "/ex/" name "/production")})
 
 (def modules [(make-module "autocomplete" "Autocomplete")
-              (make-module "dd" "Drag And Drop")
+              (make-module "dragdrop" "Drag And Drop")
               (make-module "fly" "Time Flies")
-              (make-module "paint" "Paint")
-              {:label "todos"
-               :name "todo"
-               :dev "/index.html"
-               :prod "/index.html"}])
+              (make-module "paint" "Paint")])
 
 (defhtml module-link [m]
   [:a {:href (:dev m)}  (:label m)])

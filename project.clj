@@ -6,7 +6,7 @@
                  [hiccup "1.0.2"]
                  [jayq "2.3.0"]
                  [prismatic/dommy "0.0.1"]
-                 [yolk "0.2.0-SNAPSHOT"]
+                 [yolk "0.3.0-SNAPSHOT"]
                  [yolk-jquery "0.2.0-SNAPSHOT"]]
   :plugins [[lein-cljsbuild "0.3.0"]
             [lein-ring "0.8.2"]]
