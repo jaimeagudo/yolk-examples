@@ -58,9 +58,10 @@
         console.log = function() {};
         console.dir = function() {};}")
     (include-css "/css/bootstrap.css"
+                 "/css/flat-ui.css"
                  "/css/font-awesome.css")]
    [:body {:style "padding-top: 60px;"}
-    [:div.navbar.navbar-fixed-top
+    [:div.navbar.navbar-fixed-top.navbar-inverse
      [:div.navbar-inner
       [:div.container
        (make-nav module)
