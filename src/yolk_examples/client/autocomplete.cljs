@@ -9,7 +9,7 @@
 (defn throttled-input []
   (-> (ui/->stream ($ "#search-input") "keyup")
       (b/map #(j/val ($ "#search-input")))
-      (.throttle 500)
+      (b/throttle 500)
       (b/filter #(> (count %) 2))
       b/skip-duplicates))
 
@@ -23,7 +23,7 @@
 
 (defn suggestions []
   (-> (throttled-input)
-      (.flatMapLatest search-wikipedia)
+      (b/flat-map-latest search-wikipedia)
       (b/map #(js->clj % :keywordize-keys true))
       (b/filter (fn [data]
                   (and (:0 data) (:1 data))))))
