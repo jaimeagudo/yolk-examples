@@ -15,4 +15,12 @@
               {:debug {:source-paths ["src"]
                        :compiler {:output-to "resources/public/js/cljs/main-debug.js"
                                   :optimizations :whitespace
-                                  :pretty-print true}}}})
+                                  :pretty-print true}}
+               :main {:source-paths ["src"]
+                      :compiler {:output-to "resources/public/js/cljs/main.js"
+                                 :externs ["externs/jquery-1.8.js"
+                                           "externs/bacon.js"
+                                           "externs/bacon.ui.js"
+                                           "externs/externs.js"]
+                                 :optimizations :advanced
+                                 :pretty-print false}}}})

@@ -19,7 +19,8 @@
 (def modules [(make-module "autocomplete" "Autocomplete")
               (make-module "dragdrop" "Drag And Drop")
               (make-module "fly" "Time Flies")
-              (make-module "paint" "Paint")])
+              (make-module "paint" "Paint")
+              (make-module "selector" "Engine Selector")])
 
 (defhtml module-link [m]
   [:a {:href (:dev m)}  (:label m)])
@@ -37,16 +38,17 @@
      [:li {:class (if-not dev? "active")}
       [:a {:href (str "/ex/" module "/production")
            :class (if-not dev? "info")}
-       "Production"]]
+       "Prod"]]
+     [:li.vertical-divider]
      [:li {:class (if dev? "active")}
       [:a {:href (str "/ex/" module "/development")
            :class (if dev? "info")}
-       "Development"]]]))
+       "Dev"]]]))
 
 (defhtml layout [mode module]
   (html5
    [:head
-    [:title (str "RxJS Examples: " module)]
+    [:title module]
     [:meta {:charset "utf-8"}]
     [:meta {:http-equiv "Content-Type" :content "text/html; charset=UTF-8"}]
     [:meta {:http-equiv "X-UA-Compatible" :content "IE=7;IE=8;IE=edge"}]
@@ -58,22 +60,30 @@
         console.log = function() {};
         console.dir = function() {};}")
     (include-css "/css/bootstrap.css"
-                 "/css/flat-ui.css"
-                 "/css/font-awesome.css")]
+                 "/css/flat-ui.css")]
    [:body {:style "padding-top: 60px;"}
     [:div.navbar.navbar-fixed-top.navbar-inverse
-     [:div.navbar-inner
-      [:div.container
-       (make-nav module)
-       (mode-menu mode module)]]]
-    [:div#main-content.container]
+      [:div.navbar-inner
+       [:div.container
+        (make-nav module)
+        (mode-menu mode module)]]]
+
+    [:div.container
+     [:div#main-content]]
     (include-js "/js/jquery-1.8.1.min.js"
                 "/js/bootstrap.min.js"
                 "/js/Bacon.js"
-                "/js/Bacon.UI.js")
+                "/js/Bacon.UI.js"
+                "/js/custom_checkbox_and_radio.js"
+                "/js/custom_radio.js")
+    "<!--[if lt IE 8]>
+         <script src=\"/js/icon-font-ie7.js\"></script>
+         <script src=\"/js/icon-font-ie7-24.js\"></script>
+     <![endif]-->"
+
     (main-js module
              (if (= "development" mode)
                "main-debug.js"
                "main.js"))])
-  ;[:script {:type "text/javascript" :id "lt_ws" :src "http://localhost:8833/socket.io/lighttable/ws.js"}]
-    )
+                                        ;[:script {:type "text/javascript" :id "lt_ws" :src "http://localhost:8833/socket.io/lighttable/ws.js"}]
+  )
