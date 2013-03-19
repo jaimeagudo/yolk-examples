@@ -20,6 +20,7 @@
               (make-module "dragdrop" "Drag And Drop")
               (make-module "fly" "Time Flies")
               (make-module "paint" "Paint")
+              (make-module "push" "Push")
               (make-module "selector" "Engine Selector")])
 
 (defhtml module-link [m]
