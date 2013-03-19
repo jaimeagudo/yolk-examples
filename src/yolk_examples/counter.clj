@@ -34,7 +34,7 @@
   (start-counter)
   (fn [request]
     (with-channel request channel
-      (on-receive channel #(reset! cnt 0))
+      (on-receive channel (fn [e] (reset! cnt 0)))
       (-> data
           (.subscribe (fn [i]
                         (send! channel
