@@ -34,6 +34,16 @@
             (template/node
              [:div.container
               [:h1#msg]
+              [:div.toggle
+               [:label.toggle-radio {:for "toggle-counter-on"} "ON"]
+               [:input#toggle-counter-on {:type "radio"
+                                       :value "toggle-on"
+                                       :name "toggle-counter"
+                                       :checked "checked"}]
+               [:label.toggle-radio {:for "toggle-counter-off"} "OFF"]
+               [:input#toggle-counter-off {:type "radio"
+                                       :value "toggle-off"
+                                       :name "toggle-counter"}]]
               [:button#reset.btn.btn-primary "Reset Counter"]]))
   (-> (ui/->stream ($ :#reset) "click")
       (b/do-action j/prevent)
