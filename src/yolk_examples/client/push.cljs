@@ -4,7 +4,8 @@
             [yolk.bacon :as b]
             [yolk.ui :as ui]
             [yolk.net :as net]
-            [clojure.browser.repl :as repl]))
+            [clojure.browser.repl :as repl]
+            [cljs.reader :as reader]))
 
 (def conn (js/WebSocket. "ws://127.0.0.1:3000/ws"))
 
@@ -29,23 +30,44 @@
      (on-close conn (comp subscriber b/end))
      (fn []))))
 
+(defmulti received :type)
+
+(defmethod received :noop [])
+
+(defmethod received :message [{:keys [value]}]
+  (j/inner ($ :#msg) value))
+
+(defmethod received :status [{:keys [value]}]
+  (.prop ($ :#toggle) "checked" value)
+  (.setupLabel js/window))
+
+(defn read-string [s]
+  (try
+    (reader/read-string s)
+    (catch js/Error e
+      (js/console.log e)
+      {:type :noop})))
+
 (defn ^:export main []
   (j/append ($ :#main-content)
             (template/node
              [:div.container
               [:h1#msg]
-              [:div.toggle
-               [:label.toggle-radio {:for "toggle-counter-on"} "ON"]
-               [:input#toggle-counter-on {:type "radio"
-                                       :value "toggle-on"
-                                       :name "toggle-counter"
-                                       :checked "checked"}]
-               [:label.toggle-radio {:for "toggle-counter-off"} "OFF"]
-               [:input#toggle-counter-off {:type "radio"
-                                       :value "toggle-off"
-                                       :name "toggle-counter"}]]
-              [:button#reset.btn.btn-primary "Reset Counter"]]))
+              [:label#toggle-label.checkbox {:for "toggle"}
+               [:input#toggle {:type "checkbox"}] "Counter Running"]
+              [:button#reset.btn.btn-info "Reset Counter"]]))
+
   (-> (ui/->stream ($ :#reset) "click")
       (b/do-action j/prevent)
-      (b/on-value #(.send conn "")))
-  (-> conn ws-stream (b/on-value #(j/inner ($ :#msg) (.-data %)))))
+      (b/on-value #(.send conn (pr-str {:cmd :reset}))))
+
+  (-> (ui/->stream ($ :#toggle-label) "click")
+      (b/map #(.is ($ :#toggle) ":checked"))
+      (b/on-value #(do
+                     (.send conn (pr-str {:cmd :toggle
+                                          :on? %})))))
+  (-> (ws-stream conn)
+      (b/on-value (fn [resp]
+                    (-> (.-data resp)
+                        read-string
+                        received)))))
