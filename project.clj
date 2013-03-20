@@ -1,7 +1,7 @@
 (defproject yolk-examples "0.1.0-SNAPSHOT"
   :description "Messing around with bacon.js and ClojureScript"
   :url "https://github.com/wilkes/yolk-examples"
-  :dependencies [[org.clojure/clojure "1.5.0"]
+  :dependencies [[org.clojure/clojure "1.5.1"]
                  [http-kit "2.0.0-SNAPSHOT"]
                  [compojure "1.1.3"]
                  [hiccup "1.0.2"]
