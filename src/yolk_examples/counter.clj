@@ -4,6 +4,7 @@
   (:import rx.Observable
            rx.subscriptions.Subscriptions))
 
+(def cmd (atom []))
 (def cnt (atom 0))
 (def running (atom false))
 
@@ -22,15 +23,12 @@
 
 (defn atom->observable [atm]
   (Observable/create
-       (fn [observer]
-         (let [k (gensym)]
-           (add-watch atm k
-                      (fn [_ _ _ new]
-                        (.onNext observer new)))
-           (Subscriptions/create #(remove-watch atm k))))))
-
-(def data (atom->observable cnt))
-(def status (atom->observable running))
+   (fn [observer]
+     (let [k (gensym)]
+       (add-watch atm k
+                  (fn [_ _ _ new]
+                    (.onNext observer new)))
+       (Subscriptions/create #(remove-watch atm k))))))
 
 (defmulti received :cmd)
 
@@ -42,24 +40,32 @@
     (start-counter)
     (stop-counter)))
 
+(defn send-to [channel]
+  (fn [msg]
+    (send! channel msg false)))
+
+(def data (-> cnt
+              atom->observable
+              (.map (fn [v]
+                      (pr-str {:type :message
+                               :value (str "Message #" v " from the server.")})))))
+
+(def status (-> running
+                atom->observable
+                (.map (fn [v]
+                        (pr-str {:type :status :value v})))))
+
+(def commands (-> cmd
+                  atom->observable
+                  (.map edn/read-string)
+                  (.subscribe received)))
 (defn counter []
   (start-counter)
   (fn [request]
     (with-channel request channel
-      (on-receive channel (fn [e]
-                            (received (edn/read-string e))))
+      (on-receive channel (partial reset! cmd))
       (send! channel
              (pr-str {:type :status :value @running})
              false)
-      (-> status
-          (.subscribe (fn [b]
-                        (send! channel
-                               (pr-str {:type :status :value b})
-                               false))))
-      (-> data
-          (.subscribe (fn [i]
-                        (send! channel
-                               (pr-str
-                                {:type :message
-                                 :value (str "Message #" i " from the server.")})
-                               false)))))))
+      (.subscribe status (send-to channel))
+      (.subscribe data (send-to channel)))))

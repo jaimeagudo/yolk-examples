@@ -12,7 +12,7 @@
 
 (defmulti received :type)
 
-(defmethod received :noop [])
+(defmethod received :default [])
 
 (defmethod received :message [{:keys [value]}]
   (j/inner ($ :#msg) value))
