@@ -9,8 +9,9 @@
             [clojure.browser.repl :as repl]
             [cljs.reader :as reader]))
 
-(def ws-conn (js/WebSocket. "ws://localhost:3000/ws"))
-(def lp-url "http://localhost:3000/poll")
+(def host (-> js/window .-location .-host))
+(def ws-conn (js/WebSocket. (str "ws://" host "/ws")))
+(def lp-url (str "http://" host "/poll"))
 
 (defmulti received :type)
 
@@ -51,8 +52,8 @@
 
 (defn lp-message-stream []
   (-> (net/ajax {:url "/status"})
-          (b/merge (lp/long-poll lp-url))
-          (b/map read-string)))
+      (b/merge (lp/long-poll lp-url))
+      (b/map read-string)))
 
 (defn ws-message-stream []
   (-> ws-conn
