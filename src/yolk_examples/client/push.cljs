@@ -14,15 +14,18 @@
 
 (defmulti received :type)
 
-(defmethod received :default [])
-
 (defmethod received :status [{:keys [value]}]
+  (js/console.log "received status: " msg)
   (.prop ($ :#toggle) "checked" value)
   (.setupLabel js/window))
 
-(defmethod received :message [{:keys [value]}]
+(defmethod received :message [{:keys [value] :as msg}]
+  (js/console.log "received msg: " msg)
   (j/inner ($ :#msg) value)
   (received {:type :status :value true}))
+
+(defmethod received :default [msg]
+  (js/console.log "received default: " msg))
 
 (defn read-string [s]
   (try
@@ -36,6 +39,11 @@
                    :type "POST"
                    :data {:message (pr-str cmd)}})
         (b/on-value identity))))
+
+(defn send-command-ws [conn]
+  (fn [cmd]
+    (js/console.log "send-command-ws" (pr-str cmd))
+    (.send conn (pr-str cmd))))
 
 (def content
   (template/node
@@ -56,15 +64,18 @@
                          (-> (ui/->stream ($ :#toggle-label) "click")
                              (b/do-action j/prevent)
                              (b/map #(.is ($ :#toggle) ":checked"))
-                             (b/log)
                              b/not
                              (b/map #(hash-map :cmd :toggle :on? %))))))
 
-    (b/on-value cmd-bus (send-command-to "/cmd"))
+    #_(b/on-value cmd-bus (send-command-to "/cmd"))
 
-    (-> (net/ajax {:url "/status"})
-        (b/merge (lp/long-poll lp-url))
-        (b/on-value (fn [resp]
-                      (-> resp
-                          read-string
-                          received))))))
+    (b/on-value cmd-bus (send-command-ws ws-conn))
+
+    #_(-> (net/ajax {:url "/status"})
+          (b/merge (lp/long-poll lp-url))
+          (b/map read-string)
+          (b/on-value received))
+
+    (-> (ws/ws-stream ws-conn)
+        (b/map #(read-string (.-data %)))
+        (b/on-value #(received %)))))
