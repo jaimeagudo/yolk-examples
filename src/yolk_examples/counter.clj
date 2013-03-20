@@ -40,9 +40,9 @@
     (start-counter)
     (stop-counter)))
 
-(defn send-to [channel]
+(defn send-to [channel close?]
   (fn [msg]
-    (send! channel msg false)))
+    (send! channel msg close?)))
 
 (def data (-> cnt
               atom->observable
@@ -59,13 +59,23 @@
                   atom->observable
                   (.map edn/read-string)
                   (.subscribe received)))
-(defn counter []
-  (start-counter)
-  (fn [request]
-    (with-channel request channel
-      (on-receive channel (partial reset! cmd))
-      (send! channel
-             (pr-str {:type :status :value @running})
-             false)
-      (.subscribe status (send-to channel))
-      (.subscribe data (send-to channel)))))
+
+(defn ws [request]
+  (with-channel request channel
+    (on-receive channel (partial reset! cmd))
+    (send! channel
+           (pr-str {:type :status :value @running})
+           false)
+    (.subscribe status (send-to channel false))
+    (.subscribe data (send-to channel false))))
+
+(defn poll [request]
+  (with-channel request channel
+    (.subscribe status (send-to channel true))
+    (.subscribe data (send-to channel true))))
+
+(defn get-status [request]
+  (pr-str {:type :status :value @running}))
+
+(defn initialize []
+  (start-counter))
