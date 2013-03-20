@@ -10,7 +10,7 @@
 (defroutes app-routes
   (GET "/ws" [] (counter/counter))
   (GET "/ex/:module/:mode" [module mode] (pages/layout mode module))
-  (GET "/" [] (response/redirect "/ex/fly/development"))
+  (GET "/" [] (response/redirect "/ex/autocomplete/development"))
   (route/resources "/")
   (route/not-found "Not Found"))
 
