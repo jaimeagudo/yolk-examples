@@ -33,25 +33,27 @@
      [:input#toggle {:type "checkbox"}] "Counter Running"]
     [:button#reset.btn.btn-info "Reset Counter"]]))
 
-(defn cmd-bus []
-  (let [bus (b/bus)
-        reset-stream (-> (ui/->stream ($ :#reset) "click")
-                         (b/do-action j/prevent)
-                         (b/map {:cmd :reset}))
-        toggle-stream (-> (ui/->stream ($ :#toggle-label) "click")
-                          (b/do-action j/prevent)
-                          (b/map #(.is ($ :#toggle) ":checked"))
-                          b/not
-                          (b/map #(hash-map :cmd :toggle :on? %)))]
-    (b/plug bus
-            (b/merge reset-stream toggle-stream))
-    bus))
+(defn toggle-command [_]
+  {:cmd :toggle
+   :on?  (not (.is ($ :#toggle) ":checked"))})
+
+(defn reset-command [_]
+  {:cmd :reset})
+
+(defn click-command [$elem cmd-fn]
+  (-> $elem ui/click (b/map cmd-fn)))
+
+(defn cmd-stream []
+  (b/merge (click-command ($ :#reset) reset-command)
+           (click-command ($ :#toggle-label) toggle-command)))
 
 (defn ^:export main []
   (j/append ($ :#main-content) content)
   (let [[message-stream command-handler] (ws/connect ws-url
                                                      init-url
                                                      poll-url
-                                                     command-url)]
-    (b/on-value (cmd-bus) command-handler)
+                                                     command-url)
+        cmd-bus (b/bus)]
+    (b/plug cmd-bus (cmd-stream))
+    (b/on-value cmd-bus command-handler)
     (b/on-value message-stream #(received %))))
