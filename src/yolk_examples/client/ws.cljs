@@ -1,5 +1,13 @@
 (ns yolk-examples.client.ws
-  (:require [yolk.bacon :as b]))
+  (:require [yolk.bacon :as b]
+            [jayq.core :refer [$] :as j]
+            [cljs.reader :as reader]))
+
+(defn read-string [s]
+  (try
+    (reader/read-string s)
+    (catch js/Error e
+      (js/console.log e))))
 
 (defn on-open [conn f]
   (set! (.-onopen conn) f))
@@ -21,3 +29,46 @@
      (on-error conn (comp subscriber b/error))
      (on-close conn (comp subscriber b/end))
      (fn []))))
+
+(defn poll [url bus]
+  (-> (j/ajax url)
+      (.done #(do
+                (b/push bus %)
+                (poll url bus)))))
+
+(defn long-poll [url]
+  (let [read-bus (b/bus)]
+    (js/setTimeout #(poll url read-bus) 1)
+    read-bus))
+
+
+(defn lp-message-stream [init-url poll-url]
+  (-> (net/ajax {:url init-url})
+      (b/merge (long-poll poll-url))
+      (b/map read-string)))
+
+(defn ws-message-stream [ws-conn]
+  (-> ws-conn
+      ws-stream
+      (b/map #(.-data %))
+      (b/map read-string)))
+
+(defn lp-send-command [url]
+  (fn [cmd]
+    (-> (net/ajax {:url url
+                   :type "POST"
+                   :data {:message (pr-str cmd)}})
+        (b/on-value identity))))
+
+(defn ws-send-command [conn]
+  (fn [cmd]
+    (.send conn (pr-str cmd))))
+
+
+(defn connect [ws-url init-url poll-url command-url]
+  (let [ws-conn (if js/WebSocket (js/WebSocket. ws-url))]
+    (if ws-conn
+      [(ws-message-stream ws-conn)
+       (ws-send-command ws-conn)]
+      [(lp-message-stream init-url poll-url)
+       (lp-send-command command-url)])))

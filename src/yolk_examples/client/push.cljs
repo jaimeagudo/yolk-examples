@@ -1,17 +1,17 @@
 (ns yolk-examples.client.push
   (:require [yolk-examples.client.ws :as ws]
-            [yolk-examples.client.long-poll :as lp]
             [jayq.core :refer [$] :as j]
             [dommy.template :as template]
             [yolk.bacon :as b]
             [yolk.ui :as ui]
             [yolk.net :as net]
-            [clojure.browser.repl :as repl]
-            [cljs.reader :as reader]))
+            [clojure.browser.repl :as repl]))
 
 (def host (-> js/window .-location .-host))
-(def ws-conn (js/WebSocket. (str "ws://" host "/ws")))
-(def lp-url (str "http://" host "/poll"))
+(def ws-url (str "ws://" host "/ws"))
+(def poll-url "/poll")
+(def init-url "/status")
+(def cmd-url "/cmd")
 
 (defmulti received :type)
 
@@ -25,23 +25,6 @@
 
 (defmethod received :default [msg])
 
-(defn read-string [s]
-  (try
-    (reader/read-string s)
-    (catch js/Error e
-      (js/console.log e))))
-
-(defn send-command-to [url]
-  (fn [cmd]
-    (-> (net/ajax {:url url
-                   :type "POST"
-                   :data {:message (pr-str cmd)}})
-        (b/on-value identity))))
-
-(defn send-command-ws [conn]
-  (fn [cmd]
-    (.send conn (pr-str cmd))))
-
 (def content
   (template/node
    [:div.container
@@ -49,27 +32,6 @@
     [:label#toggle-label.checkbox {:for "toggle"}
      [:input#toggle {:type "checkbox"}] "Counter Running"]
     [:button#reset.btn.btn-info "Reset Counter"]]))
-
-(defn lp-message-stream []
-  (-> (net/ajax {:url "/status"})
-      (b/merge (lp/long-poll lp-url))
-      (b/map read-string)))
-
-(defn ws-message-stream []
-  (-> ws-conn
-      ws/ws-stream
-      (b/map #(.-data %))
-      (b/map read-string)))
-
-(defn message-stream []
-  (if js/WebSocket
-    (ws-message-stream)
-    (lp-message-stream)))
-
-(defn command-handler []
-  (if js/WebSocket
-    (send-command-ws ws-conn)
-    (send-command-to "/cmd")))
 
 (defn cmd-bus []
   (let [bus (b/bus)
@@ -87,5 +49,9 @@
 
 (defn ^:export main []
   (j/append ($ :#main-content) content)
-  (b/on-value (cmd-bus) (command-handler))
-  (b/on-value (message-stream) #(received %)))
+  (let [[message-stream command-handler] (ws/connect ws-url
+                                                     init-url
+                                                     poll-url
+                                                     command-url)]
+    (b/on-value (cmd-bus) command-handler)
+    (b/on-value message-stream #(received %))))
