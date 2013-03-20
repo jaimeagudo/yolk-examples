@@ -1,5 +1,6 @@
 (ns yolk-examples.counter
   (:use org.httpkit.server)
+  (:require [clojure.edn :as edn])
   (:import rx.Observable
            rx.subscriptions.Subscriptions))
 
@@ -46,7 +47,7 @@
   (fn [request]
     (with-channel request channel
       (on-receive channel (fn [e]
-                            (received (read-string e))))
+                            (received (edn/read-string e))))
       (send! channel
              (pr-str {:type :status :value @running})
              false)
