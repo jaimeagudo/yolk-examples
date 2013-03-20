@@ -5,7 +5,6 @@
 (defn poll [url bus]
   (-> (j/ajax url)
       (.done #(do
-                (js/console.log %)
                 (b/push bus %)
                 (poll url bus)))))
 

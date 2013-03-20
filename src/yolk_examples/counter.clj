@@ -35,8 +35,9 @@
 (defmethod received :reset [msg]
   (reset! cnt 0))
 
-(defmethod received :toggle [{:keys [on?]}]
-  (if on?
+(defmethod received :toggle [msg]
+  (prn msg)
+  (if (:on? msg)
     (start-counter)
     (stop-counter)))
 
@@ -73,6 +74,11 @@
   (with-channel request channel
     (.subscribe status (send-to channel true))
     (.subscribe data (send-to channel true))))
+
+(defn cmd-bus [request]
+  (prn (-> request :params :message))
+  (reset! cmd (-> request :params :message))
+  {:status 200})
 
 (defn get-status [request]
   (pr-str {:type :status :value @running}))

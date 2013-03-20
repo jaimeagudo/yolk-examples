@@ -9,7 +9,7 @@
             [clojure.browser.repl :as repl]
             [cljs.reader :as reader]))
 
-(def wsconn (js/WebSocket. "ws://localhost:3000/ws"))
+(def ws-conn (js/WebSocket. "ws://localhost:3000/ws"))
 (def lp-url "http://localhost:3000/poll")
 
 (defmulti received :type)
@@ -30,28 +30,41 @@
     (catch js/Error e
       (js/console.log e))))
 
+(defn send-command-to [url]
+  (fn [cmd]
+    (-> (net/ajax {:url url
+                   :type "POST"
+                   :data {:message (pr-str cmd)}})
+        (b/on-value identity))))
+
+(def content
+  (template/node
+   [:div.container
+    [:h1#msg]
+    [:label#toggle-label.checkbox {:for "toggle"}
+     [:input#toggle {:type "checkbox"}] "Counter Running"]
+    [:button#reset.btn.btn-info "Reset Counter"]]))
+
 (defn ^:export main []
-  (j/append ($ :#main-content)
-            (template/node
-             [:div.container
-              [:h1#msg]
-              [:label#toggle-label.checkbox {:for "toggle"}
-               [:input#toggle {:type "checkbox"}] "Counter Running"]
-              [:button#reset.btn.btn-info "Reset Counter"]]))
+  (let [cmd-bus (b/bus)]
+    (j/append ($ :#main-content) content)
 
-  (-> (ui/->stream ($ :#reset) "click")
-      (b/do-action j/prevent)
-      (b/on-value #(.send wsconn (pr-str {:cmd :reset}))))
+    (b/plug cmd-bus (-> (ui/->stream ($ :#reset) "click")
+                        (b/do-action j/prevent)
+                        (b/map {:cmd :reset})
+                        (b/merge
+                         (-> (ui/->stream ($ :#toggle-label) "click")
+                             (b/do-action j/prevent)
+                             (b/map #(.is ($ :#toggle) ":checked"))
+                             (b/log)
+                             b/not
+                             (b/map #(hash-map :cmd :toggle :on? %))))))
 
-  (-> (ui/->stream ($ :#toggle-label) "click")
-      (b/map #(.is ($ :#toggle) ":checked"))
-      (b/on-value #(do
-                     (.send wsconn (pr-str {:cmd :toggle
-                                            :on? %})))))
-  (-> (net/ajax {:url "/status"})
-      (b/merge (lp/long-poll lp-url))
-      (b/on-value (fn [resp]
-                    (js/console.log resp)
-                    (-> resp
-                        read-string
-                        received)))))
+    (b/on-value cmd-bus (send-command-to "/cmd"))
+
+    (-> (net/ajax {:url "/status"})
+        (b/merge (lp/long-poll lp-url))
+        (b/on-value (fn [resp]
+                      (-> resp
+                          read-string
+                          received))))))
