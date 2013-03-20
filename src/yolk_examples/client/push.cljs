@@ -1,5 +1,6 @@
 (ns yolk-examples.client.push
-  (:require [jayq.core :refer [$] :as j]
+  (:require [yolk-examples.client.ws :as ws]
+            [jayq.core :refer [$] :as j]
             [dommy.template :as template]
             [yolk.bacon :as b]
             [yolk.ui :as ui]
@@ -8,27 +9,6 @@
             [cljs.reader :as reader]))
 
 (def conn (js/WebSocket. "ws://127.0.0.1:3000/ws"))
-
-(defn on-open [conn f]
-  (set! (.-onopen conn) f))
-
-(defn on-msg [conn f]
-  (set! (.-onmessage conn) f))
-
-(defn on-error [conn f]
-  (set! (.-onerror conn) f))
-
-(defn on-close [conn f]
-  (set! (.-onclose conn) f))
-
-(defn ws-stream [conn]
-  (js/Bacon.EventStream.
-   (fn [subscriber]
-     (on-open conn (comp subscriber b/initial))
-     (on-msg conn (comp subscriber b/next))
-     (on-error conn (comp subscriber b/error))
-     (on-close conn (comp subscriber b/end))
-     (fn []))))
 
 (defmulti received :type)
 
@@ -66,7 +46,7 @@
       (b/on-value #(do
                      (.send conn (pr-str {:cmd :toggle
                                           :on? %})))))
-  (-> (ws-stream conn)
+  (-> (ws/ws-stream conn)
       (b/on-value (fn [resp]
                     (-> (.-data resp)
                         read-string
