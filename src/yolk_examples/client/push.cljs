@@ -15,17 +15,14 @@
 (defmulti received :type)
 
 (defmethod received :status [{:keys [value]}]
-  (js/console.log "received status: " msg)
   (.prop ($ :#toggle) "checked" value)
   (.setupLabel js/window))
 
 (defmethod received :message [{:keys [value] :as msg}]
-  (js/console.log "received msg: " msg)
   (j/inner ($ :#msg) value)
   (received {:type :status :value true}))
 
-(defmethod received :default [msg]
-  (js/console.log "received default: " msg))
+(defmethod received :default [msg])
 
 (defn read-string [s]
   (try
@@ -42,7 +39,6 @@
 
 (defn send-command-ws [conn]
   (fn [cmd]
-    (js/console.log "send-command-ws" (pr-str cmd))
     (.send conn (pr-str cmd))))
 
 (def content
@@ -53,29 +49,42 @@
      [:input#toggle {:type "checkbox"}] "Counter Running"]
     [:button#reset.btn.btn-info "Reset Counter"]]))
 
-(defn ^:export main []
-  (let [cmd-bus (b/bus)]
-    (j/append ($ :#main-content) content)
-
-    (b/plug cmd-bus (-> (ui/->stream ($ :#reset) "click")
-                        (b/do-action j/prevent)
-                        (b/map {:cmd :reset})
-                        (b/merge
-                         (-> (ui/->stream ($ :#toggle-label) "click")
-                             (b/do-action j/prevent)
-                             (b/map #(.is ($ :#toggle) ":checked"))
-                             b/not
-                             (b/map #(hash-map :cmd :toggle :on? %))))))
-
-    #_(b/on-value cmd-bus (send-command-to "/cmd"))
-
-    (b/on-value cmd-bus (send-command-ws ws-conn))
-
-    #_(-> (net/ajax {:url "/status"})
+(defn lp-message-stream []
+  (-> (net/ajax {:url "/status"})
           (b/merge (lp/long-poll lp-url))
-          (b/map read-string)
-          (b/on-value received))
+          (b/map read-string)))
 
-    (-> (ws/ws-stream ws-conn)
-        (b/map #(read-string (.-data %)))
-        (b/on-value #(received %)))))
+(defn ws-message-stream []
+  (-> ws-conn
+      ws/ws-stream
+      (b/map #(.-data %))
+      (b/map read-string)))
+
+(defn message-stream []
+  (if js/WebSocket
+    (ws-message-stream)
+    (lp-message-stream)))
+
+(defn command-handler []
+  (if js/WebSocket
+    (send-command-ws ws-conn)
+    (send-command-to "/cmd")))
+
+(defn cmd-bus []
+  (let [bus (b/bus)
+        reset-stream (-> (ui/->stream ($ :#reset) "click")
+                         (b/do-action j/prevent)
+                         (b/map {:cmd :reset}))
+        toggle-stream (-> (ui/->stream ($ :#toggle-label) "click")
+                          (b/do-action j/prevent)
+                          (b/map #(.is ($ :#toggle) ":checked"))
+                          b/not
+                          (b/map #(hash-map :cmd :toggle :on? %)))]
+    (b/plug bus
+            (b/merge reset-stream toggle-stream))
+    bus))
+
+(defn ^:export main []
+  (j/append ($ :#main-content) content)
+  (b/on-value (cmd-bus) (command-handler))
+  (b/on-value (message-stream) #(received %)))
