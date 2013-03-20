@@ -11,7 +11,7 @@
                       (loop []
                         (if @running
                           (swap! cnt inc))
-                        (Thread/sleep 750)
+                        (Thread/sleep 1000)
                         (recur))))
 
 (defn start-counter []
