@@ -1,5 +1,6 @@
 (ns yolk-examples.client.ws
   (:require [yolk.bacon :as b]
+            [yolk.net :as net]
             [jayq.core :refer [$] :as j]
             [cljs.reader :as reader]))
 
@@ -53,9 +54,9 @@
 
 (defn poll [url bus]
   (-> (j/ajax url)
-      (.done #(do
-                (b/push bus %)
-                (poll url bus)))))
+      (.always (fn [e]
+                 (b/push bus e)
+                 (js/setTimeout #(poll url bus) 10)))))
 
 (defn long-poll [url]
   (let [read-bus (b/bus)]
@@ -80,7 +81,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn connect [ws-url init-url poll-url command-url]
-  (let [ws-conn (if js/WebSocket (js/WebSocket. ws-url))]
+  (let [ws-conn (if js/window.WebSocket (js/WebSocket. ws-url))]
     (if ws-conn
       [(ws-message-stream ws-conn)
        (ws-send-command ws-conn)]

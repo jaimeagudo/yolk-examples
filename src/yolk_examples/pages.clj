@@ -76,7 +76,8 @@
                 "/js/Bacon.js"
                 "/js/Bacon.UI.js"
                 "/js/custom_checkbox_and_radio.js"
-                "/js/custom_radio.js")
+                "/js/custom_radio.js"
+                "/js/jquery-ui-1.10.0.custom.min.js")
     "<!--[if lt IE 8]>
          <script src=\"/js/icon-font-ie7.js\"></script>
          <script src=\"/js/icon-font-ie7-24.js\"></script>
