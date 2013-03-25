@@ -3,7 +3,9 @@
             [dommy.template :as template]
             [yolk.bacon :as b]
             [yolk.ui :as ui]
-            [clojure.browser.repl :as repl]))
+            [clojure.browser.repl :as repl]
+            [yolk-examples.client.debug :as debug])
+  (:use-macros [yolk-examples.client.macros :only [->log ->logi]]))
 
 (defn- calc-offset [$target]
   (fn [event]
@@ -24,9 +26,9 @@
 (defn mouse-drag [$target]
   (let [mouseup (ui/->stream ($ js/document) "mouseup")
         mousemove (ui/->stream ($ js/document) "mousemove")]
-    (-> (ui/->stream $target "mousedown")
-        (b/map (calc-offset $target))
-        (b/flat-map (track-position mousemove mouseup)))))
+    (->log (ui/->stream $target "mousedown")
+           (b/map (calc-offset $target))
+           (b/flat-map (track-position mousemove mouseup)))))
 
 (def drag-target
   (template/node
