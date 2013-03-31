@@ -7,7 +7,7 @@
                  [hiccup "1.0.2"]
                  [jayq "2.3.0"]
                  [prismatic/dommy "0.0.1"]
-                 [yolk "0.3.0-SNAPSHOT"]
+                 [yolk "0.4.0"]
                  [yolk-jquery "0.2.0-SNAPSHOT"]
                  [com.netflix.rxjava/rxjava-clojure "0.6.1"]]
   :plugins [[lein-cljsbuild "0.3.0"]

@@ -3,17 +3,19 @@
             [dommy.template :as template]
             [yolk.bacon :as b]
             [yolk.ui :as ui]
-            [clojure.browser.repl :as repl]))
+            [clojure.browser.repl :as repl])
+  (:use-macros [yolk.macros :only [->log ->logi]]))
 
 (defn mouse-drag [target]
   (b/flat-map (ui/->stream target "mousedown")
               (fn [e]
-                (-> (ui/->stream target "mousemove")
-                    (b/map (juxt #(.-offsetX %) #(.-offsetY %)))
-                    (.slidingWindow 2)
-                    (b/map js->clj)
-                    (.skip 2)
-                    (b/take-until (ui/->stream ($ js/document) "mouseup"))))))
+                (->log (ui/->stream target "mousemove")
+                       (b/throttle 300)
+                       (b/map (juxt #(.-offsetX %) #(.-offsetY %)))
+                       (b/sliding-window 2)
+                       (b/map js->clj)
+                       (b/skip 2)
+                       (b/take-until (ui/->stream ($ js/document) "mouseup"))))))
 
 
 (defn ^:export main []

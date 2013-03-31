@@ -3,9 +3,8 @@
             [dommy.template :as template]
             [yolk.bacon :as b]
             [yolk.ui :as ui]
-            [clojure.browser.repl :as repl]
-            [yolk-examples.client.debug :as debug])
-  (:use-macros [yolk-examples.client.macros :only [->log ->logi]]))
+            [clojure.browser.repl :as repl])
+  (:use-macros [yolk.macros :only [->log ->logi]]))
 
 (defn- calc-offset [$target]
   (fn [event]

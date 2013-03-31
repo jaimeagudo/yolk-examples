@@ -4,20 +4,18 @@
             [yolk.bacon :as b]
             [yolk.ui :as ui]
             [yolk.net :as net]
-            [clojure.browser.repl :as repl]
-            [yolk-examples.client.debug :as debug])
-  (:use-macros [yolk-examples.client.macros :only [->log ->logi]]))
+            [clojure.browser.repl :as repl])
+  (:use-macros [yolk.macros :only [->log ->logi]]))
 
 (defn throttled-input []
   (-> (ui/->stream ($ "#search-input") "keyup")
       (b/map #(j/val ($ "#search-input")))
-      (->logi (b/throttle 500)
-              (b/filter #(> (count %) 2))
-              b/skip-duplicates)))
+      (b/throttle 500)
+      (b/filter #(> (count %) 2))
+      b/skip-duplicates))
 
 (defn search-wikipedia [term]
-  (net/ajax
-            {:url "http://en.wikipedia.org/w/api.php"
+  (net/ajax {:url "http://en.wikipedia.org/w/api.php"
              :data {:action "opensearch"
                     :search term
                     :format :json}
