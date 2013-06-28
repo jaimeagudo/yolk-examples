@@ -26,7 +26,7 @@
 
 (defn -main [& args]
   (counter/initialize)
-  (run-server #'app {:port 3000}))
+  (run-server #'app {:port 3001}))
 
 (comment
   (yolk-examples.server/-main))

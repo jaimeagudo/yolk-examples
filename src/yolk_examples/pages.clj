@@ -1,9 +1,9 @@
 (ns yolk-examples.pages
   (:require [hiccup.page :refer [html5
-                            include-css
-                            include-js]]
-        [hiccup.element :refer [javascript-tag]]
-        [hiccup.def :refer [defhtml]]))
+                                 include-css
+                                 include-js]]
+            [hiccup.element :refer [javascript-tag]]
+            [hiccup.def :refer [defhtml]]))
 
 (defhtml main-js [module js]
   (javascript-tag "var CLOSURE_NO_DEPS = true;")
@@ -21,7 +21,8 @@
               (make-module "fly" "Time Flies")
               (make-module "paint" "Paint")
               (make-module "push" "Push")
-              (make-module "selector" "Engine Selector")])
+              (make-module "selector" "Engine Selector")
+              (make-module "dining" "Dining")])
 
 (defhtml module-link [m]
   [:a {:href (:dev m)}  (:label m)])

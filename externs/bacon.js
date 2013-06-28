@@ -16,12 +16,13 @@ Bacon.constant = function() {};
 Bacon.never = function() {};
 Bacon.once = function() {};
 Bacon.fromArray = function() {};
-Bacon.combineAll = function() {};
 Bacon.mergeAll = function() {};
 Bacon.combineAsArray = function() {};
 Bacon.combineWith = function() {};
 Bacon.combineTemplate = function() {};
 Bacon.latestValue = function() {};
+Bacon.zipWith = function() {};
+Bacon.zipAsArray = function() {};
 
 Bacon.Observable.prototype.onValue = function() {};
 Bacon.Observable.prototype.onValues = function() {};
@@ -52,6 +53,7 @@ Bacon.EventStream.prototype.map = function() {};
 Bacon.EventStream.prototype.filter = function() {};
 Bacon.EventStream.prototype.delay = function() {};
 Bacon.EventStream.prototype.throttle = function() {};
+Bacon.EventStream.prototype.debounce = function() {};
 Bacon.EventStream.prototype.bufferWithTime = function() {};
 Bacon.EventStream.prototype.bufferWithCount = function() {};
 Bacon.EventStream.prototype.merge = function() {};
@@ -64,11 +66,13 @@ Bacon.EventStream.prototype.mapEnd = function() {};
 Bacon.EventStream.prototype.withHandler = function() {};
 Bacon.EventStream.prototype.withSubscribe = function() {};
 Bacon.EventStream.prototype.slidingWindow = function() {};
+Bacon.EventStream.prototype.zip = function() {};
 
 
 Bacon.Property.prototype.sample = function() {};
 Bacon.Property.prototype.sampledBy = function() {};
 Bacon.Property.prototype.changes = function() {};
+Bacon.Property.prototype.combine = function() {};
 Bacon.Property.prototype.withHandler = function() {};
 Bacon.Property.prototype.withSubscribe = function() {};
 Bacon.Property.prototype.toProperty = function() {};
@@ -78,3 +82,14 @@ Bacon.Property.prototype.or = function() {};
 Bacon.Property.prototype.decode = function() {};
 Bacon.Property.prototype.delay = function() {};
 Bacon.Property.prototype.throttle = function() {};
+
+Bacon.Bus = function() {};
+Bacon.Bus.prototype.plug = function() {};
+Bacon.Bus.prototype.push = function() {};
+Bacon.Bus.prototype.end = function() {};
+Bacon.Bus.prototype.error = function() {};
+
+Bacon.Initial = function() {};
+Bacon.Next = function() {};
+Bacon.End = function() {};
+Bacon.Error = function() {};
